@@ -19,9 +19,9 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-     private static int PERIOD_SCHEDULER;
-     private static int OTP_LIFETIME;
-     private static int OTP_LENGTH;
+    private static int PERIOD_SCHEDULER;
+    private static int OTP_LIFETIME;
+    private static int OTP_LENGTH;
     private static int PORT;
 
 
@@ -63,7 +63,7 @@ public class Main {
         server.createContext("/user/validate_otp", new UserController());
         server.setExecutor(null);
         server.start();
-        System.out.println("Server started on port 8080...");
+        System.out.println("Server started on port " + PORT + "...");
     }
 
     private static void createDB() throws SQLException {

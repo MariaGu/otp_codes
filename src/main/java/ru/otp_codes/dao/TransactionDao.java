@@ -1,6 +1,7 @@
 package ru.otp_codes.dao;
 
 import ru.otp_codes.dto.TransactionDto;
+import ru.otp_codes.model.OTPCode;
 import ru.otp_codes.utils.DB;
 
 import java.sql.Connection;
@@ -17,6 +18,7 @@ public class TransactionDao {
                     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
                     purchase VARCHAR(20) NOT NULL,
                     amount INTEGER NOT NULL,
+                    validated INTEGER DEFAULT 0,
                     created_at TIMESTAMP NOT NULL DEFAULT now()
                 );""";
         try (Connection conn = DB.getConnection();
@@ -32,6 +34,15 @@ public class TransactionDao {
             ps.setObject(1, userId);
             ps.setString(2, transactionDto.getPurchase());
             ps.setInt(3, transactionDto.getAmount());
+            ps.executeUpdate();
+        }
+    }
+
+    public void validateTransaction(UUID transactionId) throws SQLException {
+        String sql = "UPDATE transactions set validated=1 WHERE id=?";
+        try (Connection conn = DB.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, transactionId);
             ps.executeUpdate();
         }
     }

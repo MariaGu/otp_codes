@@ -11,9 +11,10 @@ public class OTPCode {
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
 
-    public OTPCode(UUID id, String status, LocalDateTime expiresAt) {
+    public OTPCode(UUID id, String status, UUID transactionId, LocalDateTime expiresAt) {
         this.id = id;
         this.status = status;
+        this.transactionId =transactionId;
         this.expiresAt = expiresAt;
     }
 

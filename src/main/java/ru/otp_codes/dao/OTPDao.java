@@ -39,7 +39,7 @@ public class OTPDao {
     }
 
     public OTPCode findOTPByCodeAndUserId(String code, String id) throws SQLException {
-        String sql = "SELECT o.id, o.status, o.expires_at FROM otp_codes o " +
+        String sql = "SELECT o.id, o.status, o.expires_at, o.transaction_id FROM otp_codes o " +
                 "JOIN transactions tr on tr.id=o.transaction_id " +
                 "JOIN users u on u.id=tr.user_id " +
                 "WHERE o.code=? and u.id=?";
@@ -53,6 +53,7 @@ public class OTPDao {
                 otpCode = new OTPCode(
                         (UUID) rs.getObject("id"),
                         rs.getString("status"),
+                        (UUID) rs.getObject("transaction_id"),
                         rs.getTimestamp("expires_at").toLocalDateTime());
             }
         }

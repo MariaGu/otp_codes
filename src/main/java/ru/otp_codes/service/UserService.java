@@ -46,8 +46,8 @@ public class UserService {
             OTPSender.sendToFile(user.getUsername(), code);
         }
         if (otpDto.isSendOTP()) {
-            emailNotificationService.sendCode(user.getEmail(), code);
-            smsNotificationService.sendCode(user.getPhoneNumber(), code);
+//            emailNotificationService.sendCode(user.getEmail(), code);
+//            smsNotificationService.sendCode(user.getPhoneNumber(), code);
             telegramNotificationService.sendCode(user, code);
         }
     }
@@ -67,6 +67,7 @@ public class UserService {
         OTPCode otpCode = otpDao.findOTPByCodeAndUserId(otpValidDto.getCode(), id);
         if (Objects.equals(otpCode.getStatus(), "ACTIVE") && otpCode.getExpiresAt().isAfter(LocalDateTime.now())) {
             otpDao.editStatus(otpCode.getId(), "USED");
+            transactionDao.validateTransaction(otpCode.getTransactionId());
             return true;
         }
         return false;

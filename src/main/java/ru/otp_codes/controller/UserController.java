@@ -43,6 +43,7 @@ public class UserController implements HttpHandler {
                 sendResponse(exchange, "OTP-code NOT validated successfully", 400);
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             sendResponse(exchange, ex.getMessage(), 400);
         }
     }
