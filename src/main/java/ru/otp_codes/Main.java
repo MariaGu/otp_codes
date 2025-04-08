@@ -8,7 +8,6 @@ import ru.otp_codes.dao.OTPConfigDao;
 import ru.otp_codes.dao.OTPDao;
 import ru.otp_codes.dao.TransactionDao;
 import ru.otp_codes.dao.UserDao;
-import ru.otp_codes.service.AuthService;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -23,13 +22,15 @@ public class Main {
      private static int PERIOD_SCHEDULER;
      private static int OTP_LIFETIME;
      private static int OTP_LENGTH;
+    private static int PORT;
+
 
     public Main() {
         Properties config = mainConfig();
         PERIOD_SCHEDULER = Integer.parseInt(config.getProperty("app.period.scheduler.min"));
         OTP_LIFETIME = Integer.parseInt(config.getProperty("app.otp.lifetime.sec"));
         OTP_LENGTH = Integer.parseInt(config.getProperty("app.otp.length"));
-
+        PORT = Integer.parseInt(config.getProperty("app.port"));
     }
 
     private Properties mainConfig() {
@@ -51,7 +52,7 @@ public class Main {
     }
 
     private static void createServer() throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/register", new AuthController());
         server.createContext("/login", new AuthController());
         server.createContext("/admin/users", new AdminController());
