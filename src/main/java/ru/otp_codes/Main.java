@@ -8,17 +8,43 @@ import ru.otp_codes.dao.OTPConfigDao;
 import ru.otp_codes.dao.OTPDao;
 import ru.otp_codes.dao.TransactionDao;
 import ru.otp_codes.dao.UserDao;
+import ru.otp_codes.service.AuthService;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
+import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
 
+     private static int PERIOD_SCHEDULER;
+     private static int OTP_LIFETIME;
+     private static int OTP_LENGTH;
+
+    public Main() {
+        Properties config = mainConfig();
+        PERIOD_SCHEDULER = Integer.parseInt(config.getProperty("app.period.scheduler.min"));
+        OTP_LIFETIME = Integer.parseInt(config.getProperty("app.otp.lifetime.sec"));
+        OTP_LENGTH = Integer.parseInt(config.getProperty("app.otp.length"));
+
+    }
+
+    private Properties mainConfig() {
+        try {
+            Properties props = new Properties();
+            props.load(Main.class.getClassLoader()
+                    .getResourceAsStream("app.properties"));
+            return props;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load Main configuration", e);
+        }
+    }
+
     public static void main(String[] args) throws Exception {
+        Main main = new Main();
         createDB();
         createServer();
         initScheduler();
@@ -47,11 +73,11 @@ public class Main {
         OTPDao otpDao = new OTPDao();
         otpDao.createOTP();
         OTPConfigDao otpConfigDao = new OTPConfigDao();
-        otpConfigDao.createOTPConfig();
+        otpConfigDao.createOTPConfig(OTP_LIFETIME, OTP_LENGTH);
         System.out.println("DB created...");
     }
 
-    private static void initScheduler(){
+    private static void initScheduler() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(
                 () -> {
@@ -63,7 +89,7 @@ public class Main {
                     }
                 },
                 0,
-                1,
+                PERIOD_SCHEDULER,
                 TimeUnit.MINUTES
         );
 

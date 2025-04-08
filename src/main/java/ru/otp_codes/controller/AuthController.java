@@ -9,7 +9,6 @@ import ru.otp_codes.utils.JsonParser;
 
 import java.io.*;
 
-
 public class AuthController implements HttpHandler {
     private final AuthService authService = new AuthService();
 

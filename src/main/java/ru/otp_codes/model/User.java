@@ -7,6 +7,34 @@ public class User {
     private String username;
     private String passwordHash;
     private String role;
+    private String email;
+    private String phoneNumber;
+    private String tgUsername;
+
+
+    public String getTgUsername() {
+        return tgUsername;
+    }
+
+    public void setTgUsername(String tgUsername) {
+        this.tgUsername = tgUsername;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
     public void setId(UUID id) {
         this.id = id;

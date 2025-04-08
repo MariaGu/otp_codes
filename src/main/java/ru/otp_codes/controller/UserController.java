@@ -23,6 +23,7 @@ public class UserController implements HttpHandler {
             id = JWTValidator.checkJWT(exchange, List.of("admin", "user"));
             if (id==null){
                 sendResponse(exchange, "Missing or invalid Authorization header", 401);
+                return;
             }
         }
         if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {

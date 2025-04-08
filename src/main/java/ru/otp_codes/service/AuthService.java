@@ -11,6 +11,9 @@ import ru.otp_codes.utils.PasswordEncoder;
 import ru.otp_codes.utils.UserMapper;
 
 import javax.crypto.spec.SecretKeySpec;
+import javax.mail.Authenticator;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
 
@@ -21,9 +24,27 @@ import java.util.*;
 import io.jsonwebtoken.Jwts;
 
 public class AuthService {
-    private UserDao userDao = new UserDao();
-    private static String SECRET_KEY = "oeRaYdd9jow55FfXMiINEdt1XR85VprC9jow55FfXMiINEdt1XR85RK93w";
+    private UserDao userDao;
+    private static String SECRET_KEY;
+    private int ttlMillis;
 
+    public AuthService() {
+        Properties config = jwtConfig();
+        this.userDao = new UserDao();
+        SECRET_KEY = config.getProperty("app.secret_key");
+        this.ttlMillis = Integer.parseInt(config.getProperty("app.ttlMillis"));
+        }
+
+    private Properties jwtConfig() {
+        try {
+            Properties props = new Properties();
+            props.load(AuthService.class.getClassLoader()
+                    .getResourceAsStream("app.properties"));
+            return props;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load JWT configuration", e);
+        }
+    }
 
     public String register(UserRegDto userRegDto) throws Exception {
         if (userDao.findByUsername(userRegDto.getUsername()) != null)
@@ -50,7 +71,6 @@ public class AuthService {
 
     public String generateJWT(User user) {
 
-        int ttlMillis = 30000;
         long nowMillis = System.currentTimeMillis();
         Date now = new Date(nowMillis);
 
@@ -100,7 +120,5 @@ public class AuthService {
             return null;
         }
     }
-
-
 }
 

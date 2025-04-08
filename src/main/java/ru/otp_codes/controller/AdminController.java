@@ -4,20 +4,15 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import ru.otp_codes.dto.OTPConfigDto;
 import ru.otp_codes.dto.UsersDelDto;
-import ru.otp_codes.model.User;
 import ru.otp_codes.service.AdminService;
-import ru.otp_codes.service.AuthService;
 import ru.otp_codes.utils.JWTValidator;
 import ru.otp_codes.utils.JsonParser;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class AdminController implements HttpHandler {
-
 
     private final AdminService adminService = new AdminService();
 
@@ -29,6 +24,7 @@ public class AdminController implements HttpHandler {
           String id = JWTValidator.checkJWT(exchange, List.of("admin"));
           if (id==null){
               sendResponse(exchange, "Missing or invalid Authorization header", 401);
+              return;
           }
         }
         if (method.equalsIgnoreCase("POST") && path.equals("/admin/otp_config_edit")) {
@@ -78,7 +74,5 @@ public class AdminController implements HttpHandler {
         os.write(response.getBytes());
         os.close();
     }
-
-
 }
 

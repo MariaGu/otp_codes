@@ -30,7 +30,7 @@ public class OTPDao {
     }
 
     public void editStatusWhenExpired(String status) throws SQLException {
-        String sql = "UPDATE otp_codes SET status=? where expires_at < CURRENT_TIMESTAMP ";
+        String sql = "UPDATE otp_codes SET status=? where expires_at < CURRENT_TIMESTAMP and status!=''USED'";
         try (Connection conn = DB.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
@@ -51,9 +51,9 @@ public class OTPDao {
             ResultSet rs = ps.executeQuery();
             if (rs.next()){
                 otpCode = new OTPCode(
-                        (UUID) rs.getObject("o.id"),
-                        rs.getString("o.status"),
-                        rs.getTimestamp("o.expires_at").toLocalDateTime());
+                        (UUID) rs.getObject("id"),
+                        rs.getString("status"),
+                        rs.getTimestamp("expires_at").toLocalDateTime());
             }
         }
         return otpCode;

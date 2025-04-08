@@ -1,10 +1,7 @@
 package ru.otp_codes.dao;
 
-
-import ru.otp_codes.model.OTPCode;
 import ru.otp_codes.model.User;
 import ru.otp_codes.utils.DB;
-
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,12 +13,16 @@ import java.util.UUID;
 
 public class UserDao {
     public void saveUser(User user) throws SQLException {
-        String sql = "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO users (username, password_hash, role, email, phone_number, tg_username) " +
+                "VALUES (?,?,?,?,?,?)";
         try (Connection conn = DB.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getPasswordHash());
             ps.setString(3, user.getRole());
+            ps.setString(4, user.getEmail());
+            ps.setString(5, user.getPhoneNumber());
+            ps.setString(6, user.getTgUsername());
             ps.executeUpdate();
         }
     }
@@ -38,6 +39,9 @@ public class UserDao {
                 user.setUsername(rs.getString("username"));
                 user.setPasswordHash(rs.getString("password_hash"));
                 user.setRole(rs.getString("role"));
+                user.setEmail(rs.getString("email"));
+                user.setPhoneNumber(rs.getString("phone_number"));
+                user.setTgUsername(rs.getString("tg_username"));
                 return user;
             }
         }
@@ -55,6 +59,9 @@ public class UserDao {
                 user.setId(UUID.fromString(id));
                 user.setRole(rs.getString("role"));
                 user.setUsername(rs.getString("username"));
+                user.setEmail(rs.getString("email"));
+                user.setPhoneNumber(rs.getString("phone_number"));
+                user.setTgUsername(rs.getString("tg_username"));
                return user;
             }
         }
@@ -103,6 +110,9 @@ public class UserDao {
                 CREATE TABLE IF NOT EXISTS users (
                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     username VARCHAR(50) UNIQUE NOT NULL,
+                    email VARCHAR(100) NOT NULL,
+                    phone_number VARCHAR(15) NOT NULL,
+                    tg_username VARCHAR(20) NOT NULL,
                     password_hash TEXT NOT NULL,
                     role VARCHAR(20) NOT NULL
                 );""";

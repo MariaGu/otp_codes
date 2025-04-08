@@ -1,5 +1,7 @@
 package ru.otp_codes.utils;
 
+import ru.otp_codes.model.User;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -12,5 +14,9 @@ public class OTPSender {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void send(User user, String code) {
+
     }
 }

@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class OTPConfigDao {
-    public void createOTPConfig() throws SQLException {
+    public void createOTPConfig(int lifetime, int length) throws SQLException {
         String sqlCreate = """
                 CREATE TABLE IF NOT EXISTS otp_config (
                     id INTEGER PRIMARY KEY,
@@ -20,7 +20,7 @@ public class OTPConfigDao {
                 );""";
         String sqlInsert = """
                 INSERT INTO otp_config (id, lifetime, length)
-                SELECT 1, 60, 10
+                SELECT 1, ?, ?
                 WHERE NOT EXISTS (
                     SELECT 1 FROM otp_config
                 );;""";
@@ -28,6 +28,8 @@ public class OTPConfigDao {
              PreparedStatement psCreate = conn.prepareStatement(sqlCreate);
              PreparedStatement psInsert = conn.prepareStatement(sqlInsert);) {
             psCreate.executeUpdate();
+            psInsert.setInt(1, lifetime);
+            psInsert.setInt(2, length);
             psInsert.executeUpdate();
         }
     }

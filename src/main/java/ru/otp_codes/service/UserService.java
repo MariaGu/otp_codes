@@ -24,6 +24,9 @@ public class UserService {
 
     private final OTPConfigDao otpConfigDao = new OTPConfigDao();
     private final TransactionDao transactionDao = new TransactionDao();
+    private final EmailNotificationService emailNotificationService = new EmailNotificationService();
+    private final SmsNotificationService smsNotificationService = new SmsNotificationService();
+    private final TelegramNotificationService telegramNotificationService = new TelegramNotificationService();
 
     public void generateOTP(OTPDto otpDto, String id) throws Exception {
 
@@ -39,7 +42,16 @@ public class UserService {
         otpDao.saveOTP(otp);
         User user = userDao.findById(id);
 
-        OTPSender.sendToFile(user.getUsername(), code);
+        if (otpDto.isSaveToFileOTP()) {
+            OTPSender.sendToFile(user.getUsername(), code);
+        }
+        if (otpDto.isSendOTP()) {
+//            emailNotificationService.sendCode(user.getEmail(), code);
+//            smsNotificationService.sendCode(user.getPhoneNumber(), code);
+            telegramNotificationService.sendCode(user, code);
+        }
+
+
     }
 
     public String generateNumericCode(int length) {
@@ -55,17 +67,14 @@ public class UserService {
 
     public boolean validateOTP(OTPValidDto otpValidDto, String id) throws SQLException {
         OTPCode otpCode = otpDao.findOTPByCodeAndUserId(otpValidDto.getCode(), id);
-        if (Objects.equals(otpCode.getStatus(), "ACTIVE") && otpCode.getExpiresAt().isAfter(LocalDateTime.now())){
+        if (Objects.equals(otpCode.getStatus(), "ACTIVE") && otpCode.getExpiresAt().isAfter(LocalDateTime.now())) {
             otpDao.editStatus(otpCode.getId(), "USED");
             return true;
         }
-
         return false;
     }
 
     public void makeTransaction(TransactionDto transactionDto, String id) throws SQLException {
         transactionDao.saveTransaction(transactionDto, UUID.fromString(id));
     }
-
-
 }
