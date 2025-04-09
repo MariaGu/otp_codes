@@ -1,7 +1,6 @@
 package ru.otp_codes.dao;
 
 import ru.otp_codes.dto.OTPConfigDto;
-import ru.otp_codes.model.User;
 import ru.otp_codes.utils.DB;
 
 import java.sql.Connection;

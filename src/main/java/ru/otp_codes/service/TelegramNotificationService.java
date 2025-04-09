@@ -4,8 +4,11 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otp_codes.dao.UserDao;
 import ru.otp_codes.model.User;
+
 import java.io.InputStream;
 import java.net.URL;
 import java.net.HttpURLConnection;
@@ -21,9 +24,12 @@ public class TelegramNotificationService {
 
     private final UserDao userDao;
     private static String BOT_TOKEN;
+    private static Logger logger;
+
 
     public TelegramNotificationService() {
         Properties config = tgConfig();
+        logger = LoggerFactory.getLogger(TelegramNotificationService.class);
         this.userDao = new UserDao();
         BOT_TOKEN = config.getProperty("app.token_bot");
     }
@@ -35,11 +41,12 @@ public class TelegramNotificationService {
                     .getResourceAsStream("app.properties"));
             return props;
         } catch (Exception e) {
+            logger.error("Failed to load telegram configuration");
             throw new RuntimeException("Failed to load Telegram configuration", e);
         }
     }
 
-    private Long findChatId(User user){
+    private Long findChatId(User user) {
 
         Map<String, Long> userChatMap = new HashMap<>();
         try {
@@ -76,39 +83,45 @@ public class TelegramNotificationService {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error={}", e.getMessage());
         }
         return userChatMap.get(user.getTgUsername());
     }
 
-    public void sendCode(User user, String code) {
-        Long chatId = findChatId(user);
-        if (chatId!=null){
-            String message = String.format(user.getUsername() + ", your confirmation code is: %s", code);
-            String url = String.format("%s?chat_id=%s&text=%s",
-                    "https://api.telegram.org/bot"+BOT_TOKEN+"/sendMessage",
-                    chatId,
-                    urlEncode(message));
+    public boolean sendCode(User user, String code) {
 
-            sendTelegramRequest(url);
-        } else {
-            System.out.println("Sending to Telegram impossible");
+
+        try {
+            Long chatId = findChatId(user);
+            if (chatId != null) {
+                String message = String.format(user.getUsername() + ", your confirmation code is: %s", code);
+                String url = String.format("%s?chat_id=%s&text=%s",
+                        "https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage",
+                        chatId,
+                        urlEncode(message));
+                sendTelegramRequest(url);
+                return true;
+            } else {
+                logger.info("Sending to Telegram impossible for userName={}", user.getUsername());
+                return false;
+            }
+        } catch (IOException e) {
+            logger.error("Error={} while sending OTP-code to telegram", e.getMessage());
+            return false;
         }
     }
 
-    private void sendTelegramRequest(String url) {
+    private void sendTelegramRequest(String url) throws IOException {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet request = new HttpGet(url);
             try (CloseableHttpResponse response = httpClient.execute(request)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode != 200) {
-                    System.out.println("Telegram API error. Status code: {}" + statusCode);
+                    logger.error("Telegram API error. Status code: {}", statusCode);
                 } else {
-                    System.out.println("Telegram message sent successfully");
+                    logger.info("Telegram message sent successfully");
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Error sending Telegram message: {}" + e.getMessage());
         }
     }
 

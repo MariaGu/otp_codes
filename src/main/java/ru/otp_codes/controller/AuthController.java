@@ -2,6 +2,8 @@ package ru.otp_codes.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otp_codes.dto.UserDto;
 import ru.otp_codes.dto.UserRegDto;
 import ru.otp_codes.service.AuthService;
@@ -11,6 +13,8 @@ import java.io.*;
 
 public class AuthController implements HttpHandler {
     private final AuthService authService = new AuthService();
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -21,34 +25,43 @@ public class AuthController implements HttpHandler {
         }
     }
 
-    private void handleRegister(HttpExchange exchange) throws IOException {
-        UserRegDto userRegDto = JsonParser.parseBody(exchange, UserRegDto.class);
+    private void handleRegister(HttpExchange exchange) {
         try {
+            UserRegDto userRegDto = JsonParser.parseBody(exchange, UserRegDto.class);
             String res = authService.register(userRegDto);
             sendResponse(exchange, res, 200);
+            logger.info("Successfully register for user with username={}", userRegDto.getUsername());
         } catch (Exception ex) {
-            ex.printStackTrace();
             sendResponse(exchange, ex.getMessage(), 400);
+            logger.error("Failed to register, error = {}", ex.getMessage());
         }
     }
 
-    private void handleLogin(HttpExchange exchange) throws IOException {
-        UserDto userDto = JsonParser.parseBody(exchange, UserDto.class);
+    private void handleLogin(HttpExchange exchange) {
         try {
+            UserDto userDto = JsonParser.parseBody(exchange, UserDto.class);
             String token = authService.login(userDto);
-            if (token != null)
+            if (token != null) {
                 sendResponse(exchange, "Login successful, token: " + token, 200);
-            else
+                logger.info("Successfully login for user with username={}", userDto.getUsername());
+            } else {
                 sendResponse(exchange, "Invalid credentials", 401);
+                logger.error("Failed to login for username={}", userDto.getUsername());
+            }
         } catch (Exception ex) {
             sendResponse(exchange, ex.getMessage(), 500);
+            logger.error("Failed to login, error = {}", ex.getMessage());
         }
     }
 
-    private void sendResponse(HttpExchange exchange, String response, int code) throws IOException {
-        exchange.sendResponseHeaders(code, response.length());
-        OutputStream os = exchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+    private void sendResponse(HttpExchange exchange, String response, int code) {
+        try {
+            exchange.sendResponseHeaders(code, response.length());
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        } catch (IOException e) {
+            logger.error("Failer to send resposnse, error={}", e.getMessage());
+        }
     }
 }

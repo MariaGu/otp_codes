@@ -1,5 +1,7 @@
 package ru.otp_codes.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otp_codes.model.User;
 
 import java.io.FileWriter;
@@ -7,16 +9,17 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 public class OTPSender {
-    public static void sendToFile(String username, String code) {
+    private static Logger logger= LoggerFactory.getLogger(OTPSender.class);
+
+    public static boolean sendToFile(String username, String code) {
         try (FileWriter writer = new FileWriter("OTP_" + username + ".txt")) {
             writer.write("Hello, " + username + "\nYour OTP code is: " + code +
                     "\nGenerated at: " + LocalDateTime.now());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error={} during send OTP-code to file", e.getMessage());
+            return false;
         }
+        return true;
     }
 
-    public static void send(User user, String code) {
-
-    }
 }

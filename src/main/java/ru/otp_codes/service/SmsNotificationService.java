@@ -1,6 +1,8 @@
 package ru.otp_codes.service;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smpp.Connection;
 import org.smpp.Session;
 import org.smpp.TCPIPConnection;
@@ -18,15 +20,19 @@ public class SmsNotificationService {
     private String password;
     private String systemType;
     private String sourceAddress;
+    private static Logger logger;
+
 
     public SmsNotificationService() {
         Properties config = loadConfig();
+        logger = LoggerFactory.getLogger(SmsNotificationService.class);
         this.host = config.getProperty("smpp.host");
         this.port = Integer.parseInt(config.getProperty("smpp.port"));
         this.systemId = config.getProperty("smpp.system_id");
         this.password = config.getProperty("smpp.password");
         this.systemType = config.getProperty("smpp.system_type");
-        this.sourceAddress = config.getProperty("smpp.source_addr");        ;
+        this.sourceAddress = config.getProperty("smpp.source_addr");
+        ;
     }
 
     private Properties loadConfig() {
@@ -36,11 +42,12 @@ public class SmsNotificationService {
                     .getResourceAsStream("sms.properties"));
             return props;
         } catch (Exception e) {
+            logger.error("Failed to load sms configuration");
             throw new RuntimeException("Failed to load sms configuration", e);
         }
     }
 
-    public void sendCode(String destination, String code) {
+    public boolean sendCode(String destination, String code) {
         Connection connection;
         Session session;
 
@@ -61,10 +68,11 @@ public class SmsNotificationService {
             submitSM.setSourceAddr(sourceAddress);
             submitSM.setDestAddr(destination);
             submitSM.setShortMessage("Your code: " + code);
-
             session.submit(submitSM);
+            return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to send sms");
+            return false;
         }
     }
 }

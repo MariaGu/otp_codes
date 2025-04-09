@@ -1,19 +1,16 @@
 package ru.otp_codes.service;
 
-import ru.otp_codes.dao.OTPDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.otp_codes.dao.UserDao;
 import ru.otp_codes.dto.UserDto;
 import ru.otp_codes.dto.UserRegDto;
-import ru.otp_codes.model.OTPCode;
 import ru.otp_codes.model.User;
-import ru.otp_codes.utils.OTPSender;
 import ru.otp_codes.utils.PasswordEncoder;
 import ru.otp_codes.utils.UserMapper;
 
 import javax.crypto.spec.SecretKeySpec;
-import javax.mail.Authenticator;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
+
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
 
@@ -27,13 +24,16 @@ public class AuthService {
     private UserDao userDao;
     private static String SECRET_KEY;
     private int ttlMillis;
+    private static Logger logger;
+
 
     public AuthService() {
         Properties config = jwtConfig();
+        logger = LoggerFactory.getLogger(AuthService.class);
         this.userDao = new UserDao();
         SECRET_KEY = config.getProperty("app.secret_key");
         this.ttlMillis = Integer.parseInt(config.getProperty("app.ttlMillis"));
-        }
+    }
 
     private Properties jwtConfig() {
         try {
@@ -42,6 +42,7 @@ public class AuthService {
                     .getResourceAsStream("app.properties"));
             return props;
         } catch (Exception e) {
+            logger.error("Failed to load JWT configuration");
             throw new RuntimeException("Failed to load JWT configuration", e);
         }
     }
@@ -107,16 +108,15 @@ public class AuthService {
             Map<String, String> result = new HashMap<>();
             result.put("role", (String) claims.get("role"));
             result.put("id", claims.getSubject());
-          return result;
-
+            return result;
         } catch (ExpiredJwtException e) {
-            System.out.println("Token expired: " + e.getMessage());
+            logger.error("Token expired: {}", e.getMessage());
             return null;
         } catch (SignatureException e) {
-            System.out.println("Invalid signature: " + e.getMessage());
+            logger.error("Invalid signature: {}", e.getMessage());
             return null;
         } catch (Exception e) {
-            System.out.println("Invalid token: " + e.getMessage());
+            logger.error("Invalid token: {}", e.getMessage());
             return null;
         }
     }

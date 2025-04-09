@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class JWTValidator {
 
-    public static String checkJWT(HttpExchange exchange, List<String> roles) throws IOException {
+    public static String checkJWT(HttpExchange exchange, List<String> roles) {
         String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return null;

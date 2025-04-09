@@ -13,10 +13,8 @@ import ru.otp_codes.utils.OTPSender;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class UserService {
     private final OTPDao otpDao = new OTPDao();
@@ -28,7 +26,7 @@ public class UserService {
     private final SmsNotificationService smsNotificationService = new SmsNotificationService();
     private final TelegramNotificationService telegramNotificationService = new TelegramNotificationService();
 
-    public void generateOTP(OTPDto otpDto, String id) throws Exception {
+    public Map<String, Boolean> generateOTP(OTPDto otpDto, String id) throws Exception {
 
         Map<String, Integer> otpConfig = otpConfigDao.getLengthAndLifetime();
 
@@ -42,14 +40,16 @@ public class UserService {
         otpDao.saveOTP(otp);
         User user = userDao.findById(id);
 
+        Map<String, Boolean> result = new HashMap<>();
         if (otpDto.isSaveToFileOTP()) {
-            OTPSender.sendToFile(user.getUsername(), code);
+            result.put("file", OTPSender.sendToFile(user.getUsername(), code));
         }
         if (otpDto.isSendOTP()) {
-//            emailNotificationService.sendCode(user.getEmail(), code);
-//            smsNotificationService.sendCode(user.getPhoneNumber(), code);
-            telegramNotificationService.sendCode(user, code);
+            result.put("email", emailNotificationService.sendCode(user.getEmail(), code));
+            result.put("sms", smsNotificationService.sendCode(user.getPhoneNumber(), code));
+            result.put("telegram", telegramNotificationService.sendCode(user, code));
         }
+        return result;
     }
 
     public String generateNumericCode(int length) {
